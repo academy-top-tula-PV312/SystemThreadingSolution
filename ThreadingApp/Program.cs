@@ -2,31 +2,50 @@
 
 namespace ThreadingApp
 {
-    internal class Program
+    public class Program
     {
-        static int count = 0;
+        
+         
         static void Main(string[] args)
         {
-            for(int i = 0; i < 5; i++)
+            for(int i = 0; i < 10;  i++)
             {
-                Thread thread = new(IncCount);
-                thread.Name = "Thread " + (i + 1).ToString();
-                thread.Start();
+                Car car = new(i + 1);
             }
+        }
+    }
 
-            
-            Console.WriteLine(count);
+    public class Car
+    {
+        int count = 5;
+        Thread carThread;
+
+        static Semaphore semaphore = new Semaphore(4, 4);
+        static Random random = new Random();
+
+        public Car(int id)
+        {
+            carThread = new(Parcking);
+            carThread.Name = $"Car {id}";
+            carThread.Start();
         }
 
-        static void IncCount()
+        public void Parcking()
         {
-            for (int i = 0; i < 10; i++)
+            while(count > 0)
             {
-                count++;
-                Console.WriteLine($"{Thread.CurrentThread.Name}: {count}");
-                Thread.Sleep(300);
+                semaphore.WaitOne();
+                Console.WriteLine($"{Thread.CurrentThread.Name} IN parking");
+
+                Thread.Sleep(random.Next(200, 400));
+
+                Console.WriteLine($"{Thread.CurrentThread.Name} OUT parking");
+                semaphore.Release();
+
+                count--;
+
+                Thread.Sleep(random.Next(200, 400));
             }
-                
         }
     }
 }
