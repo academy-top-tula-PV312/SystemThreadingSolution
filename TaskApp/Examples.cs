@@ -8,6 +8,8 @@ namespace TaskApp
 {
     internal static class Examples
     {
+        static Random random = new Random();
+
         public static void TaskWelcomeExample()
         {
             Task task1 = new Task(SayHello);
@@ -69,6 +71,72 @@ namespace TaskApp
             Task.WaitAll(tasks.ToArray());
             //Task.WaitAny(tasks.ToArray());
             Console.WriteLine("Main finished");
+        }
+
+        public static void TaskREsultExaqmple()
+        {
+            //Console.WriteLine(GaussTask(1000));
+
+            Task<int> task2 = new Task<int>(GaussAmount, 2000);
+            task2.Start();
+
+            Console.WriteLine(task2.Result);
+        }
+
+        static int GaussTask(int n)
+        {
+            Task<int> amountTask = new(
+                () =>
+                {
+                    return GaussAmount(n);
+                });
+
+            amountTask.Start();
+
+            int result = amountTask.Result;
+            return result;
+        }
+        static int GaussAmount(object? maxObj)
+        {
+            int maxNumber = (int)maxObj!;
+            int result = 0;
+            for (int i = 1; i <= maxNumber; i++)
+                result += i;
+
+            //Thread.Sleep(1000);
+            return result;
+        }
+
+        public static void ParallelExample()
+        {
+            List<Action> actionList = new List<Action>();
+            for (int i = 0; i < 5; i++)
+            {
+                actionList.Add(() => TaskPrint(random.Next(8, 15)));
+            }
+
+            //Parallel.Invoke(actionList.ToArray());
+
+            //Parallel.For(8, 15, TaskPrint);
+
+            List<int> rndList = new();
+            for (int i = 0; i < 5; i++)
+                rndList.Add(random.Next(8, 15));
+            for (int i = 0; i < rndList.Count; i++)
+                Console.Write($"{rndList[i]} ");
+            Console.WriteLine();
+
+            Parallel.ForEach(rndList, TaskPrint);
+        }
+
+        static void TaskPrint(int n)
+        {
+
+            for (int i = 0; i < n; i++)
+            {
+                Console.WriteLine($"Task Print {n} - {i}");
+                Thread.Sleep(random.Next(300, 600));
+            }
         }
     }
 }

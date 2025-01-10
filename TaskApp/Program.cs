@@ -5,40 +5,91 @@ namespace TaskApp
 {
     internal class Program
     {
+        static Random random = new Random();
+        
         static void Main(string[] args)
         {
-            //Console.WriteLine(GaussTask(1000));
+            CancellationTokenSource cts = new CancellationTokenSource();
+            CancellationToken token = cts.Token;
 
-            Task<int> task2 = new(GaussAmount, 2000);
-            task2.Start();
+            //Task task = new Task(() =>
+            //{
+            //    int i = 0;
 
-            Console.WriteLine(task2.Result);
+            //    token.Register(() =>
+            //    {
+            //        Console.WriteLine("Task cancel");
+            //        i = 50;
+            //    });
+
+            //    // Task loop
+            //    for (; i < 50; i++)
+            //    {
+            //        // Non exception cancelling
+            //        //if (token.IsCancellationRequested)
+            //        //{
+            //        //    Console.WriteLine("Task cancel");
+            //        //    return;
+            //        //}
+
+            //        //if(token.IsCancellationRequested)
+            //        //{
+            //        //    Console.WriteLine("Task cancel");
+            //        //    token.ThrowIfCancellationRequested();
+            //        //}
+
+
+
+            //        Console.WriteLine($"\tTask {i} -> {i * i}");
+            //        Thread.Sleep(200);
+            //    }
+            //}, token);
+
+            Task task = new Task(() => LoopPrint(token), token);
+
+            task.Start();
+
+            // Main loop
+            for (int i = 0; i < 50; i++)
+            {
+                Console.WriteLine($"Main {i} -> {i * i}");
+                Thread.Sleep(200);
+                if(i == 20)
+                    cts.Cancel();
+            }
+
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                cts.Dispose();
+            }
+            
+
+            Console.WriteLine($"Status task: {task.Status}");
         }
 
-        static int GaussTask(int n)
+        static void LoopPrint(CancellationToken token)
         {
-            Task<int> amountTask = new(
-                () =>
+            for(int i = 0; i < 100; i++)
+            {
+                if(token.IsCancellationRequested)
                 {
-                    return GaussAmount(n);
-                });
-
-            amountTask.Start();
-
-            int result = amountTask.Result;
-            return result;
+                    Console.WriteLine("Task cancel");
+                    return;
+                }
+                Console.WriteLine($"{i} -> {i * i}");
+                Thread.Sleep(100);
+            }
         }
 
-        static int GaussAmount(object? maxObj)
-        {
-            int maxNumber = (int)maxObj!;
-            int result = 0;
-            for (int i = 1; i <= maxNumber; i++)
-                result += i;
-
-            //Thread.Sleep(1000);
-            return result;
-        }
+        
 
          
     }
